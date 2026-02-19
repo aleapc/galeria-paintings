@@ -3,7 +3,415 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ale APC — Galeria de Pinturas</title>
+  <title>Ale APC - Galeria de Pinturas</title>
+  <style>
+    :root{--bg:#0f0f0f;--surface:#1a1a1a;--gold:#c8a96e;--gold-light:#e8c98e;--text:#f0ede8;--muted:#888;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:Georgia,serif;}
+    header{background:linear-gradient(135deg,#0f0f0f,#1a0a0a,#0f0f0f);border-bottom:1px solid var(--gold);padding:3rem 2rem 2rem;text-align:center;}
+    .artist-name{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:.15em;color:var(--gold-light);text-transform:uppercase;margin-bottom:.5rem;}
+    .artist-subtitle{font-size:1rem;color:var(--muted);letter-spacing:.3em;text-transform:uppercase;margin-bottom:1.5rem;}
+    .artist-bio{max-width:600px;margin:0 auto 1.5rem;font-size:.95rem;color:#bbb;line-height:1.7;font-style:italic;}
+    .social-link{display:inline-flex;align-items:center;gap:.4rem;color:var(--gold);text-decoration:none;font-size:.85rem;letter-spacing:.1em;border:1px solid var(--gold);padding:.4rem 1rem;border-radius:2px;transition:all .3s;}
+    .social-link:hover{background:var(--gold);color:#0f0f0f;}
+    nav{display:flex;justify-content:center;gap:.5rem;padding:1rem 2rem;background:var(--surface);border-bottom:1px solid #333;flex-wrap:wrap;}
+    nav button{background:none;border:1px solid #444;color:var(--muted);padding:.4rem 1rem;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .3s;font-family:inherit;}
+    nav button:hover,nav button.active{border-color:var(--gold);color:var(--gold);background:rgba(200,169,110,.05);}
+    .gallery-container{max-width:1400px;margin:0 auto;padding:3rem 2rem;}
+    .gallery-header{text-align:center;margin-bottom:3rem;}
+    .gallery-header h2{font-size:1.2rem;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;}
+    .gallery-header p{color:var(--muted);font-size:.9rem;}
+    .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem;}
+    .painting-card{background:var(--surface);border:1px solid #2a2a2a;overflow:hidden;transition:transform .4s,box-shadow .4s,border-color .3s;cursor:pointer;}
+    .painting-card:hover{transform:translateY(-6px);box-shadow:0 20px 60px rgba(0,0,0,.7);border-color:var(--gold);}
+    .card-image-wrap{position:relative;overflow:hidden;background:#111;aspect-ratio:4/5;}
+    .card-image-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .6s;display:block;}
+    .painting-card:hover .card-image-wrap img{transform:scale(1.05);}
+    .card-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));padding:2rem 1rem 1rem;opacity:0;transition:opacity .3s;}
+    .painting-card:hover .card-overlay{opacity:1;}
+    .overlay-view{display:inline-block;border:1px solid var(--gold);color:var(--gold);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;padding:.3rem .8rem;}
+    .card-info{padding:1.2rem 1.2rem 1.5rem;border-top:1px solid #2a2a2a;}
+    .card-number{font-size:.7rem;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-bottom:.4rem;}
+    .card-title{font-size:1rem;font-weight:400;color:var(--text);margin-bottom:.3rem;line-height:1.4;}
+    .card-meta{font-size:.8rem;color:var(--muted);font-style:italic;margin-bottom:.8rem;}
+    .card-desc{font-size:.82rem;color:#999;line-height:1.6;margin-bottom:1rem;}
+    .card-footer{display:flex;align-items:center;justify-content:space-between;}
+    .price-tag{font-size:.8rem;color:var(--gold);background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);padding:.2rem .6rem;border-radius:2px;}
+    .btn-contact{background:none;border:1px solid var(--gold);color:var(--gold);padding:.35rem .8rem;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:all .3s;border-radius:2px;}
+    .btn-contact:hover{background:var(--gold);color:#0f0f0f;}
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;justify-content:center;align-items:center;padding:2rem;}
+    .lightbox.open{display:flex;}
+    .lightbox-inner{max-width:900px;width:100%;position:relative;}
+    .lightbox-close{position:absolute;top:-2.5rem;right:0;background:none;border:none;color:var(--gold);font-size:1.5rem;cursor:pointer;}
+    .lightbox img{width:100%;max-height:75vh;object-fit:contain;border:1px solid #333;}
+    .lightbox-caption{padding:1rem;background:var(--surface);border:1px solid #333;border-top:none;}
+    .lightbox-caption h3{color:var(--gold-light);margin-bottom:.3rem;}
+    .lightbox-caption p{color:var(--muted);font-size:.85rem;font-style:italic;}
+    .contact-section{background:var(--surface);border-top:1px solid #2a2a2a;padding:4rem 2rem;text-align:center;}
+    .contact-section h2{font-size:1.5rem;font-weight:400;color:var(--gold-light);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem;}
+    .contact-section p{color:var(--muted);max-width:500px;margin:0 auto 2rem;line-height:1.7;}
+    .contact-links{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;}
+    .contact-links a{color:var(--gold);text-decoration:none;border:1px solid var(--gold);padding:.6rem 1.5rem;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;transition:all .3s;border-radius:2px;}
+    .contact-links a:hover{background:var(--gold);color:#0f0f0f;}
+    footer{text-align:center;padding:2rem;border-top:1px solid #222;color:#444;font-size:.8rem;letter-spacing:.1em;}
+    footer span{color:var(--gold);}
+    @media(max-width:600px){.gallery-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="artist-name">Ale APC</div>
+  <div class="artist-subtitle">Pinturas Originais &middot; Oil on Canvas</div>
+  <p class="artist-bio">Pintor recente, com foco exclusivo em oleo sobre tela. Obras abstratas e expressivas que exploram cor, emocao e textura - cada peca unica, assinada e certificada pelo artista.</p>
+  <a class="social-link" href="https://www.instagram.com/aleapc_paintings/" target="_blank">@aleapc_paintings no Instagram</a>
+</header>
+<nav>
+  <button class="active" onclick="filterGallery('all',this)">Todas as obras</button>
+  <button onclick="filterGallery('abstract',this)">Abstratas</button>
+  <button onclick="filterGallery('landscape',this)">Paisagens</button>
+  <button onclick="filterGallery('2025',this)">2025</button>
+</nav>
+<div class="gallery-container">
+  <div class="gallery-header">
+    <h2>Acervo Original</h2>
+    <p>Clique numa obra para ampliar &middot; Entre em contacto para adquirir</p>
+  </div>
+  <div class="gallery-grid" id="galleryGrid">
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-001.png" alt="Crazy, crazy, crazy Universe"/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #001</div>
+        <div class="card-title">Crazy, crazy, crazy Universe</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Abstrato</div>
+        <div class="card-desc">Composicao explosiva em preto, laranja e rosa com drippings brancos.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Crazy, crazy, crazy Universe')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="landscape 2026" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-002.png" alt=""Mulungu" no Parque do Povo"/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #002</div>
+        <div class="card-title">"Mulungu" no Parque do Povo</div>
+        <div class="card-meta">2026 &middot; Oleo sobre tela &middot; Paisagem</div>
+        <div class="card-desc">Majestosa arvore Mulungu em plena floracao laranja contra ceu de por-do-sol vermelho.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('"Mulungu" no Parque do Povo')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-003.png" alt="To be..."/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #003</div>
+        <div class="card-title">To be...</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Abstrato</div>
+        <div class="card-desc">Linhas verticais que fluem de cima a baixo criando uma cortina de cor - tons quentes e frios.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('To be...')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-004.png" alt="Sem nome (ainda)..."/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #004</div>
+        <div class="card-title">Sem nome (ainda)...</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Abstrato</div>
+        <div class="card-desc">Pinceladas largas em vermelho, laranja e amarelo sobre fundo cinza. Energia de chamas.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Sem nome (ainda)...')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-005.png" alt="The Clock..."/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #005</div>
+        <div class="card-title">The Clock...</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Abstrato</div>
+        <div class="card-desc">Explosao de cor sobre fundo cinza escuro - rosa, amarelo, verde e azul em diagonais.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('The Clock...')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-006.png" alt="Tentando... Arte-terapia"/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #006</div>
+        <div class="card-title">Tentando... Arte-terapia</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Paisagem abstrata</div>
+        <div class="card-desc">Camadas de textura outonal - branco, dourado, vermelho e verde sobrepostos com espatula.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Tentando... Arte-terapia')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="landscape 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-007.png" alt="Um dos meus primeiros..."/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #007</div>
+        <div class="card-title">Um dos meus primeiros...</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Paisagem</div>
+        <div class="card-desc">Campo verde ao entardecer com ceu azul e nuvens dramaticas - estrutura geometrica focal.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Um dos meus primeiros...')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-008.png" alt="Grade de Cores"/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #008</div>
+        <div class="card-title">Grade de Cores</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Abstrato geometrico</div>
+        <div class="card-desc">Composicao geometrica vibrante: blocos e faixas em verde, vermelho, amarelo e azul.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Grade de Cores')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-009.png" alt="Big Mess"/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #009</div>
+        <div class="card-title">Big Mess</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Expressionismo abstrato</div>
+        <div class="card-desc">Caos ordenado - profusao de cores que se sobropoem criando profundidade e textura rica.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Big Mess')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-010.png" alt="Listras - Serie Cor"/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #010</div>
+        <div class="card-title">Listras - Serie Cor</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Abstrato</div>
+        <div class="card-desc">Faixas verticais em toda a escala cromatica - do azul ao coral, do amarelo ao verde.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Listras - Serie Cor')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-011.png" alt="Pinceladas - Serie Gestos"/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #011</div>
+        <div class="card-title">Pinceladas - Serie Gestos</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Expressionismo abstrato</div>
+        <div class="card-desc">Grandes pinceladas diagonais sobre fundo escuro - azul, ocre, vermelho e branco.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Pinceladas - Serie Gestos')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap">
+        <img src="obra-012.png" alt=""Foggy TV Screen""/>
+        <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
+      </div>
+      <div class="card-info">
+        <div class="card-number">Obra #012</div>
+        <div class="card-title">"Foggy TV Screen"</div>
+        <div class="card-meta">2025 &middot; Oleo sobre tela &middot; Abstrato</div>
+        <div class="card-desc">Listras verticais em tons suaves e enevoados criando sensacao de atmosfera e profundidade.</div>
+        <div class="card-footer">
+          <span class="price-tag">Consultar preco</span>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('"Foggy TV Screen"')">Contactar</button>
+        </div>
+      </div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-001.png" alt="Crazy Universe"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #001</div><div class="card-title">Crazy, crazy, crazy Universe</div><div class="card-meta">2025 - Oleo sobre tela - Abstrato</div><div class="card-desc">Composicao explosiva em preto, laranja e rosa com drippings brancos.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Crazy Universe')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="landscape 2026" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-002.png" alt="Mulungu"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #002</div><div class="card-title">Mulungu no Parque do Povo</div><div class="card-meta">2026 - Oleo sobre tela - Paisagem</div><div class="card-desc">Arvore Mulungu em floracao laranja contra ceu de por-do-sol vermelho. Moldura dourada.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Mulungu')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-003.png" alt="To be"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #003</div><div class="card-title">To be...</div><div class="card-meta">2025 - Oleo sobre tela - Abstrato</div><div class="card-desc">Linhas verticais criando uma cortina de cor - tons quentes e frios em harmonia meditativa.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('To be')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-004.png" alt="Sem nome"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #004</div><div class="card-title">Sem nome (ainda)...</div><div class="card-meta">2025 - Oleo sobre tela - Abstrato</div><div class="card-desc">Pinceladas em vermelho, laranja e amarelo sobre fundo cinza. Energia de chamas.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Sem nome')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-005.png" alt="The Clock"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #005</div><div class="card-title">The Clock...</div><div class="card-meta">2025 - Oleo sobre tela - Abstrato</div><div class="card-desc">Explosao de cor sobre fundo cinza - rosa, amarelo, verde e azul em diagonais cruzadas.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('The Clock')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-006.png" alt="Arte-terapia"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #006</div><div class="card-title">Tentando... Arte-terapia</div><div class="card-meta">2025 - Oleo sobre tela - Paisagem abstrata</div><div class="card-desc">Camadas de textura outonal - branco, dourado, vermelho escuro e verde sobrepostos.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Arte-terapia')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="landscape 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-007.png" alt="Primeiros"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #007</div><div class="card-title">Um dos meus primeiros...</div><div class="card-meta">2025 - Oleo sobre tela - Paisagem</div><div class="card-desc">Campo verde ao entardecer com ceu azul e nuvens dramaticas. Realismo lirico.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Primeiros')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-008.png" alt="Grade de Cores"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #008</div><div class="card-title">Grade de Cores</div><div class="card-meta">2025 - Oleo sobre tela - Abstrato geometrico</div><div class="card-desc">Composicao geometrica vibrante: blocos em verde, vermelho, amarelo e azul.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Grade de Cores')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-009.png" alt="Big Mess"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #009</div><div class="card-title">Big Mess</div><div class="card-meta">2025 - Oleo sobre tela - Expressionismo abstrato</div><div class="card-desc">Caos ordenado - profusao de cores criando profundidade e textura rica.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Big Mess')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-010.png" alt="Listras"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #010</div><div class="card-title">Listras - Serie Cor</div><div class="card-meta">2025 - Oleo sobre tela - Abstrato</div><div class="card-desc">Faixas verticais em toda a escala cromatica - do azul ao coral, do amarelo ao verde.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Listras')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-011.png" alt="Pinceladas"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #011</div><div class="card-title">Pinceladas - Serie Gestos</div><div class="card-meta">2025 - Oleo sobre tela - Expressionismo abstrato</div><div class="card-desc">Grandes pinceladas diagonais - azul, ocre, vermelho e branco em movimento dinamico.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Pinceladas')">Contactar</button></div></div>
+    </div>
+    <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
+      <div class="card-image-wrap"><img src="obra-012.png" alt="Foggy TV Screen"/><div class="card-overlay"><span class="overlay-view">Ver obra</span></div></div>
+      <div class="card-info"><div class="card-number">Obra #012</div><div class="card-title">Foggy TV Screen</div><div class="card-meta">2025 - Oleo sobre tela - Abstrato</div><div class="card-desc">Listras verticais em tons suaves e enevoados - cinza, verde, vermelho e ocre.</div><div class="card-footer"><span class="price-tag">Consultar preco</span><button class="btn-contact" onclick="event.stopPropagation();contactArtist('Foggy TV Screen')">Contactar</button></div></div>
+    </div>
+  </div>
+</div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-inner" onclick="event.stopPropagation()">
+    <button class="lightbox-close" onclick="closeLightbox()">X Fechar</button>
+    <img id="lightboxImg" src="" alt=""/>
+    <div class="lightbox-caption"><h3 id="lightboxTitle"></h3><p id="lightboxMeta"></p></div>
+  </div>
+</div>
+<div class="contact-section">
+  <h2>Adquirir uma obra</h2>
+  <p>Cada quadro e uma peca unica, oleo sobre tela, assinada pelo artista. Para valores, disponibilidade e envio, entre em contacto diretamente.</p>
+  <div class="contact-links">
+    <a href="https://www.instagram.com/aleapc_paintings/" target="_blank">Instagram</a>
+    <a href="mailto:aleapc@gmail.com">E-mail</a>
+  </div>
+</div>
+<footer>&copy; 2025-2026 <span>Ale APC</span> &middot; Todos os direitos reservados &middot; Oil on Canvas</footer>
+<script>
+function filterGallery(tag,btn){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.painting-card').forEach(card=>{
+    card.style.display=(tag==='all'||card.dataset.tags.includes(tag))?'':'none';
+  });
+}
+function openLightbox(card){
+  var img=card.querySelector('img');
+  var title=card.querySelector('.card-title').textContent;
+  var meta=card.querySelector('.card-meta').textContent;
+  document.getElementById('lightboxImg').src=img.src;
+  document.getElementById('lightboxImg').alt=img.alt;
+  document.getElementById('lightboxTitle').textContent=title;
+  document.getElementById('lightboxMeta').textContent=meta;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow='';
+}
+function contactArtist(painting){
+  window.open('https://www.instagram.com/aleapc_paintings/','_blank');
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLightbox();});
+</script>
+</body>
+</html>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-inner" onclick="event.stopPropagation()">
+    <button class="lightbox-close" onclick="closeLightbox()">Fechar</button>
+    <img id="lightboxImg" src="" alt=""/>
+    <div class="lightbox-caption"><h3 id="lightboxTitle"></h3><p id="lightboxMeta"></p></div>
+  </div>
+</div>
+<div class="contact-section">
+  <h2>Adquirir uma obra</h2>
+  <p>Cada quadro e uma peca unica, oleo sobre tela, assinada pelo artista.</p>
+  <div class="contact-links">
+    <a href="https://www.instagram.com/aleapc_paintings/" target="_blank">Instagram</a>
+    <a href="mailto:aleapc@gmail.com">E-mail</a>
+  </div>
+</div>
+<footer>&copy; 2025-2026 <span>Ale APC</span></footer><script>
+function filterGallery(tag,btn){
+  document.querySelectorAll('nav button').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  document.querySelectorAll('.painting-card').forEach(function(card){
+    card.style.display=(tag==='all'||card.dataset.tags.includes(tag))?'':'none';
+  });
+}
+function openLightbox(card){
+  var img=card.querySelector('img');
+  var title=card.querySelector('.card-title').textContent;
+  var meta=card.querySelector('.card-meta').textContent;
+  document.getElementById('lightboxImg').src=img.src;
+  document.getElementById('lightboxTitle').textContent=title;
+  document.getElementById('lightboxMeta').textContent=meta;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow='';
+}
+function contactArtist(p){window.open('https://www.instagram.com/aleapc_paintings/','_blank');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLightbox();});
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ale APC &#8212; Galeria de Pinturas</title>
   <style>
     :root {
       --bg: #0f0f0f;
@@ -104,7 +512,7 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DU7I5TkjPBf/media/?size=l" alt="Crazy Universe" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+001'"/>
+        <img src="obra-001.png" alt="Crazy Universe"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -121,7 +529,7 @@
 
     <div class="painting-card" data-tags="landscape 2026" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DTyYiitD8cu/media/?size=l" alt="Mulungu" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+002'"/>
+        <img src="obra-002.png" alt="Mulungu"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -138,7 +546,7 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DPngob-jYHK/media/?size=l" alt="To be" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+003'"/>
+        <img src="obra-003.png" alt="To be"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -155,7 +563,7 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DPkmu0SDDbD/media/?size=l" alt="Sem nome" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+004'"/>
+        <img src="obra-004.png" alt="Sem nome"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -172,7 +580,7 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DPjjja6EQeN/media/?size=l" alt="The Clock" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+005'"/>
+        <img src="obra-005.png" alt="The Clock"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -189,7 +597,7 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DPfcM9kjMar/media/?size=l" alt="Arte-terapia" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+006'"/>
+        <img src="obra-006.png" alt="Arte-terapia"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -206,7 +614,7 @@
 
     <div class="painting-card" data-tags="landscape 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DNmKo2HMeqs/media/?size=l" alt="Primeiros" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+007'"/>
+        <img src="obra-007.png" alt="Primeiros"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -223,7 +631,7 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DNW--SMM_cM/media/?size=l" alt="Grade de Cores" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+008'"/>
+        <img src="obra-008.png" alt="Grade de Cores"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -240,7 +648,7 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DNHVliKs777/media/?size=l" alt="Big Mess" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+009'"/>
+        <img src="obra-009.png" alt="Big Mess"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -257,7 +665,7 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DM188VgsPZ3/media/?size=l" alt="Listras" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+010'"/>
+        <img src="obra-010.png" alt="Listras"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -274,7 +682,7 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DMwd2OUMFz8/media/?size=l" alt="Pinceladas" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+011'"/>
+        <img src="obra-011.png" alt="Pinceladas"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
@@ -291,17 +699,17 @@
 
     <div class="painting-card" data-tags="abstract 2025" onclick="openLightbox(this)">
       <div class="card-image-wrap">
-        <img src="https://www.instagram.com/p/DPK9IlQDFpB/media/?size=l" alt="Amarelo Vibrante" onerror="this.src='https://placehold.co/600x750/1a1a1a/c8a96e?text=Obra+012'"/>
+        <img src="obra-012.png" alt="Foggy TV Screen"/>
         <div class="card-overlay"><span class="overlay-view">Ver obra</span></div>
       </div>
       <div class="card-info">
         <div class="card-number">Obra #012</div>
-        <div class="card-title">Amarelo Vibrante</div>
+        <div class="card-title">"Foggy TV Screen"</div>
         <div class="card-meta">2025 &middot; &Oacute;leo sobre tela &middot; Abstrato</div>
-        <div class="card-desc">Amarelo dominante rasgado por pinceladas de rosa, azul e vermelho. Luz intensa e presen&ccedil;a marcante &mdash; uma obra que ilumina qualquer ambiente.</div>
+        <div class="card-desc">Listras verticais em tons suaves e enevoados &mdash; cinza, verde, vermelho e ocre criando uma sensa&ccedil;&atilde;o de atmosfera e profundidade.</div>
         <div class="card-footer">
           <span class="price-tag">Consultar pre&ccedil;o</span>
-          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Amarelo Vibrante')">Contactar</button>
+          <button class="btn-contact" onclick="event.stopPropagation();contactArtist('Foggy TV Screen')">Contactar</button>
         </div>
       </div>
     </div>
@@ -324,40 +732,3 @@
   <h2>Adquirir uma obra</h2>
   <p>Cada quadro &eacute; uma pe&ccedil;a &uacute;nica, &oacute;leo sobre tela, assinada pelo artista. Para valores, disponibilidade e envio, entre em contacto diretamente.</p>
   <div class="contact-links">
-    <a href="https://www.instagram.com/aleapc_paintings/" target="_blank">Instagram</a>
-    <a href="mailto:aleapc@gmail.com">E-mail</a>
-  </div>
-</div>
-
-<footer>&copy; 2025&ndash;2026 <span>Ale APC</span> &nbsp;&middot;&nbsp; Todos os direitos reservados &nbsp;&middot;&nbsp; Oil on Canvas</footer>
-
-<script>
-function filterGallery(tag,btn){
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.painting-card').forEach(card=>{
-    card.style.display=(tag==='all'||card.dataset.tags.includes(tag))?'':'none';
-  });
-}
-function openLightbox(card){
-  const img=card.querySelector('img');
-  const title=card.querySelector('.card-title').textContent;
-  const meta=card.querySelector('.card-meta').textContent;
-  document.getElementById('lightboxImg').src=img.src;
-  document.getElementById('lightboxImg').alt=img.alt;
-  document.getElementById('lightboxTitle').textContent=title;
-  document.getElementById('lightboxMeta').textContent=meta;
-  document.getElementById('lightbox').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function closeLightbox(){
-  document.getElementById('lightbox').classList.remove('open');
-  document.body.style.overflow='';
-}
-function contactArtist(painting){
-  window.open('https://www.instagram.com/aleapc_paintings/','_blank');
-}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
-</script>
-</body>
-  </html>
